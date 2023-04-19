@@ -7,6 +7,7 @@ pub struct BerClassFromIntError(pub(crate) ());
 /// BER Object class of tag
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 #[repr(u8)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum Class {
     /// `Universal` class of tags (`0b00`)
     Universal = 0b00,

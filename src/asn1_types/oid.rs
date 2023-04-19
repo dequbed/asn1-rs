@@ -32,7 +32,7 @@ pub enum OidParseError {
 /// create oids. For example `oid!(1.2.44.233)` or `oid!(rel 44.233)`
 /// for relative oids. See the [module documentation](index.html) for more information.
 #[derive(Hash, PartialEq, Eq, Clone)]
-
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Oid<'a> {
     asn1: Cow<'a, [u8]>,
     relative: bool,

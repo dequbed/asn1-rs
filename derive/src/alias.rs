@@ -46,6 +46,7 @@ pub fn derive_der_alias(s: synstructure::Structure) -> proc_macro2::TokenStream 
     let impl_tagged = container.gen_tagged();
     let impl_checkconstraints = container.gen_checkconstraints();
     let impl_fromder = container.gen_fromder();
+    let impl_toder = container.gen_toder();
     let ts = s.gen_impl(quote! {
         extern crate asn1_rs;
 
@@ -53,6 +54,7 @@ pub fn derive_der_alias(s: synstructure::Structure) -> proc_macro2::TokenStream 
         #impl_tagged
         #impl_checkconstraints
         #impl_fromder
+        #impl_toder
     });
     if debug_derive {
         eprintln!("{}", ts);

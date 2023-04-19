@@ -3,7 +3,8 @@ use alloc::borrow::Cow;
 use core::convert::TryFrom;
 
 /// ASN.1 `OCTETSTRING` type
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct OctetString<'a> {
     data: Cow<'a, [u8]>,
 }
@@ -12,6 +13,12 @@ impl<'a> OctetString<'a> {
     pub const fn new(s: &'a [u8]) -> Self {
         OctetString {
             data: Cow::Borrowed(s),
+        }
+    }
+
+    pub fn from_owned(owned: <[u8] as ToOwned>::Owned) -> Self {
+        OctetString {
+            data: Cow::Owned(owned),
         }
     }
 

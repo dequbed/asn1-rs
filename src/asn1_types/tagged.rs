@@ -22,11 +22,13 @@ pub use private::*;
 pub(crate) const CONTEXT_SPECIFIC: u8 = Class::ContextSpecific as u8;
 
 /// A type parameter for `IMPLICIT` tagged values.
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum Implicit {}
 
 /// A type parameter for `EXPLICIT` tagged values.
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum Explicit {}
 
 /// A type parameter for tagged values either [`Explicit`] or [`Implicit`].
@@ -62,7 +64,8 @@ impl TagKind for Explicit {}
 ///         .unwrap();
 /// assert_eq!(tagged, TaggedValue::explicit(Integer::from(2)));
 /// ```
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct TaggedValue<T, E, TagKind, const CLASS: u8, const TAG: u32> {
     pub(crate) inner: T,
 
@@ -126,3 +129,15 @@ impl<T, E, TagKind, const CLASS: u8, const TAG: u32> Tagged
 {
     const TAG: Tag = Tag(TAG);
 }
+
+impl<T: PartialEq, E, TagKind, const CLASS: u8, const TAG: u32> PartialEq
+    for TaggedValue<T, E, TagKind, CLASS, TAG>
+{
+    fn eq(&self, other: &Self) -> bool {
+        self.inner.eq(&other.inner)
+    }
+}
+
+impl<T: Eq, E, TagKind, const CLASS: u8, const TAG: u32> Eq
+    for TaggedValue<T, E, TagKind, CLASS, TAG>
+{ }

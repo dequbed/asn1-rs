@@ -71,6 +71,7 @@ pub use vec::*;
 /// be used to provide a simpler API.
 ///
 #[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Sequence<'a> {
     /// Serialized DER representation of the sequence content
     pub content: Cow<'a, [u8]>,

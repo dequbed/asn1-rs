@@ -8,6 +8,7 @@ use core::convert::TryFrom;
 ///
 /// This type cannot exist in DER, and so provides no `FromDer`/`ToDer` implementation.
 #[derive(Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct EndOfContent {}
 
 impl EndOfContent {

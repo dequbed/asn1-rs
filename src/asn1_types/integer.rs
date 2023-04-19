@@ -269,6 +269,7 @@ impl_int!(u128 => i128);
 /// assert_eq!(&v, &[2, 1, 4]);
 /// ```
 #[derive(Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Integer<'a> {
     pub(crate) data: Cow<'a, [u8]>,
 }
@@ -308,22 +309,34 @@ impl<'a> Integer<'a> {
 
     /// Build an `Integer` from a constant array of bytes representation of an integer.
     pub fn from_const_array<const N: usize>(b: [u8; N]) -> Self {
-        let mut idx = 0;
+        let mut idx = 0isize;
         // skip leading 0s
-        while idx < b.len() {
-            if b[idx] == 0 {
+        while idx < (b.len() as isize) {
+            if b[idx as usize] == 0 {
                 idx += 1;
                 continue;
             }
             break;
         }
-        if idx == b.len() {
+        // Most significant bit is set; we need a buffer byte of all zeros before this one.
+        if idx < (b.len() as isize) && b[idx as usize] > 127 {
+            idx -= 1;
+        }
+
+        if idx == (b.len() as isize) {
             Integer {
                 data: Cow::Borrowed(&[0]),
             }
+        } else if idx < 0 {
+            let mut buf = Vec::with_capacity(N + 1);
+            buf.push(0);
+            buf.extend_from_slice(&b);
+            Integer {
+                data: Cow::Owned(buf)
+            }
         } else {
             Integer {
-                data: Cow::Owned(b[idx..].to_vec()),
+                data: Cow::Owned(b[(idx as usize)..].to_vec()),
             }
         }
     }

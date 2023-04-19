@@ -26,7 +26,7 @@ use core::iter::FromIterator;
 /// assert_eq!(sum, 9);
 ///
 /// ```
-#[derive(Debug)]
+#[derive(Debug, Clone, Ord, PartialOrd, Eq, PartialEq)]
 pub struct SetOf<T> {
     items: Vec<T>,
 }

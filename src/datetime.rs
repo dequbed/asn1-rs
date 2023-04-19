@@ -6,6 +6,7 @@ use core::fmt;
 use time::OffsetDateTime;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, PartialOrd, Ord)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum ASN1TimeZone {
     /// No timezone provided
     Undefined,
@@ -18,6 +19,7 @@ pub enum ASN1TimeZone {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct ASN1DateTime {
     pub year: u32,
     pub month: u8,

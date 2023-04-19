@@ -302,6 +302,90 @@ impl Container {
             }
         }
     }
+
+    pub fn gen_toder(&self) -> TokenStream {
+        let lifetime = Lifetime::new("'ber", Span::call_site());
+        let len = Ident::new("len", Span::call_site());
+        let wh = &self.where_predicates;
+        let content_len =
+            derive_ber_sequence_len(&self.fields, Asn1Type::Der, self.error.is_some(), &len);
+        let content_write =
+            derive_ber_sequence_write(&self.fields, Asn1Type::Der, self.error.is_some(), &len);
+        let error = if let Some(attr) = &self.error {
+            get_attribute_meta(attr).expect("Invalid error attribute format")
+        } else {
+            quote! { asn1_rs::Error }
+        };
+
+        let to_der_len_content = if self.container_type == ContainerType::Alias {
+            quote! {
+                self.0.to_der_len()
+            }
+        } else {
+            quote! {
+                let mut #len = 0;
+                #content_len
+                len += asn1_rs::Header::new(
+                    asn1_rs::Class::Universal,
+                    true,
+                    Self::TAG,
+                    asn1_rs::Length::Definite(len)
+                ).to_der_len()?;
+                Ok(len)
+            }
+        };
+
+        let write_header_content = if self.container_type == ContainerType::Alias {
+            quote! {
+                self.0.write_der_header(writer)
+            }
+        } else {
+            quote! {
+                let mut len = 0;
+                #content_len
+                asn1_rs::Header::new(
+                    asn1_rs::Class::Universal,
+                    true,
+                    Self::TAG,
+                    asn1_rs::Length::Definite(len)
+                ).write_der_header(writer)
+            }
+        };
+
+        let write_content = if self.container_type == ContainerType::Alias {
+            quote! {
+                self.0.write_der_content(writer)
+            }
+        } else {
+            quote! {
+                let mut len = 0;
+                #content_write
+                Ok(len)
+            }
+        };
+
+        quote! {
+            use asn1_rs::ToDer;
+
+            gen impl<#lifetime> asn1_rs::ToDer for @Self where #(#wh)+* {
+                fn to_der_len(&self) -> asn1_rs::Result<usize, #error> {
+                    #to_der_len_content
+                }
+
+                fn write_der_header(&self, writer: &mut dyn ::std::io::Write)
+                    -> asn1_rs::SerializeResult<usize>
+                {
+                    #write_header_content
+                }
+
+                fn write_der_content(&self, writer: &mut dyn ::std::io::Write)
+                    -> asn1_rs::SerializeResult<usize>
+                {
+                    #write_content
+                }
+            }
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -406,6 +490,38 @@ fn derive_ber_sequence_content(
     }
 }
 
+fn derive_ber_sequence_len(
+    fields: &[FieldInfo],
+    asn1_type: Asn1Type,
+    custom_errors: bool,
+    len: &Ident,
+) -> TokenStream {
+    let field_lenfns: Vec<_> = fields
+        .iter()
+        .map(|f| get_field_lenfn(f, asn1_type, custom_errors, len))
+        .collect();
+
+    quote! {
+        #(#field_lenfns)*
+    }
+}
+
+fn derive_ber_sequence_write(
+    fields: &[FieldInfo],
+    asn1_type: Asn1Type,
+    custom_errors: bool,
+    len: &Ident,
+) -> TokenStream {
+    let field_writes: Vec<_> = fields
+        .iter()
+        .map(|f| get_field_write(f, asn1_type, custom_errors, len))
+        .collect();
+
+    quote! {
+        #(#field_writes)*
+    }
+}
+
 fn get_field_parser(f: &FieldInfo, asn1_type: Asn1Type, custom_errors: bool) -> TokenStream {
     let from = match asn1_type {
         Asn1Type::Ber => quote! {FromBer::from_ber},
@@ -471,6 +587,118 @@ fn get_field_parser(f: &FieldInfo, asn1_type: Asn1Type, custom_errors: bool) -> 
         quote! {
             let (i, #name) = #from(i)#map_err?;
             #default
+        }
+    }
+}
+
+fn get_field_lenfn(f: &FieldInfo, asn1_type: Asn1Type, custom_errors: bool, len: &Ident) -> TokenStream {
+    let name = &f.name;
+    let map_err = if let Some(tt) = f.map_err.as_ref() {
+        if asn1_type == Asn1Type::Ber {
+            Some(quote! { .finish().map_err(#tt) })
+        } else {
+            // Some(quote! { .map_err(|err| nom::Err::convert(#tt)) })
+            Some(quote! { .map_err(|err| err.map(#tt)) })
+        }
+    } else {
+        // add mapping functions only if custom errors are used
+        if custom_errors {
+            if asn1_type == Asn1Type::Ber {
+                Some(quote! { .finish() })
+            } else {
+                Some(quote! { .map_err(nom::Err::convert) })
+            }
+        } else {
+            None
+        }
+    };
+    if let Some((tag_kind, class, n)) = f.tag {
+        let tag = Literal::u16_unsuffixed(n);
+        let as_tagged = match tag_kind {
+            Asn1TagKind::Explicit => {
+                quote! {
+                    asn1_rs::TaggedValue::<_, asn1_rs::Error, #tag_kind, {#class}, #tag>::explicit
+                }
+            }
+            Asn1TagKind::Implicit => {
+                quote! {
+                    asn1_rs::TaggedValue::<_, asn1_rs::Error, #tag_kind, {#class}, #tag>::implicit
+                }
+            }
+        };
+        // test if tagged + optional
+        if f.optional {
+            quote! {
+                if let Some(ref #name) = self.#name {
+                    #len += #as_tagged(#name).to_der_len()#map_err?;
+                }
+            }
+        } else {
+            // tagged, but not OPTIONAL
+            quote! {
+                #len += #as_tagged(&self.#name).to_der_len()#map_err?;
+            }
+        }
+    } else {
+        // neither tagged nor optional
+        quote! {
+            #len += self.#name.to_der_len()#map_err?;
+        }
+    }
+}
+
+fn get_field_write(f: &FieldInfo, asn1_type: Asn1Type, custom_errors: bool, len: &Ident) -> TokenStream {
+    let name = &f.name;
+    let map_err = if let Some(tt) = f.map_err.as_ref() {
+        if asn1_type == Asn1Type::Ber {
+            Some(quote! { .finish().map_err(#tt) })
+        } else {
+            // Some(quote! { .map_err(|err| nom::Err::convert(#tt)) })
+            Some(quote! { .map_err(|err| err.map(#tt)) })
+        }
+    } else {
+        // add mapping functions only if custom errors are used
+        if custom_errors {
+            if asn1_type == Asn1Type::Ber {
+                Some(quote! { .finish() })
+            } else {
+                Some(quote! { .map_err(nom::Err::convert) })
+            }
+        } else {
+            None
+        }
+    };
+    if let Some((tag_kind, class, n)) = f.tag {
+        let tag = Literal::u16_unsuffixed(n);
+        let as_tagged = match tag_kind {
+            Asn1TagKind::Explicit => {
+                quote! {
+                    asn1_rs::TaggedValue::<_, asn1_rs::Error, #tag_kind, {#class}, #tag>::explicit
+                }
+            }
+            Asn1TagKind::Implicit => {
+                quote! {
+                    asn1_rs::TaggedValue::<_, asn1_rs::Error, #tag_kind, {#class}, #tag>::implicit
+                }
+            }
+        };
+        // test if tagged + optional
+        if f.optional {
+            quote! {
+                if let Some(ref #name) = self.#name {
+                    #len += #as_tagged(#name).write_der(writer)#map_err?;
+                }
+            }
+        } else {
+            // tagged, but not OPTIONAL
+            quote! {
+                #len += #as_tagged(&self.#name).write_der(writer)#map_err?;
+            }
+        }
+    } else {
+        // neither tagged nor optional
+        quote! {
+            #len += self.#name.write_der(writer)#map_err?;
         }
     }
 }

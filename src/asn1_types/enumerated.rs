@@ -8,6 +8,7 @@ use core::convert::TryFrom;
 ///
 /// Supported values are limited to 0 .. 2^32
 #[derive(Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Enumerated(pub u32);
 
 impl Enumerated {

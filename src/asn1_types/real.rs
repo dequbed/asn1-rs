@@ -14,6 +14,7 @@ pub use self::f64::*;
 ///
 /// When encoding binary values, only base 2 is supported
 #[derive(Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum Real {
     /// Non-special values
     Binary {

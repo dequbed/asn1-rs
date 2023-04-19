@@ -5,6 +5,7 @@ use core::ops;
 
 /// BER Object Length
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum Length {
     /// Definite form (X.690 8.1.3.3)
     Definite(usize),

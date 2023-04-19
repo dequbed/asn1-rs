@@ -10,7 +10,8 @@ use core::convert::{TryFrom, TryInto};
 /// It contains a header, and either a reference to or owned data for the object content.
 ///
 /// Note: this type is only provided in **borrowed** version (*i.e.* it cannot own the inner data).
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Any<'a> {
     /// The object header
     pub header: Header<'a>,

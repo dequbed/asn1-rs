@@ -54,7 +54,8 @@ macro_rules! asn1_string {
         #[doc="ASN.1 restricted character string type (`"]
         #[doc = $sname]
         #[doc = "`)"]
-        #[derive(Debug, PartialEq)]
+        #[derive(Clone, Debug, PartialEq)]
+        #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
         pub struct $name<'a> {
             pub(crate) data: alloc::borrow::Cow<'a, str>,
         }
@@ -84,7 +85,7 @@ macro_rules! asn1_string {
             }
         }
 
-        impl From<String> for $name<'_> {
+        impl From<String> for $name<'static> {
             fn from(s: String) -> Self {
                 Self {
                     data: alloc::borrow::Cow::Owned(s),

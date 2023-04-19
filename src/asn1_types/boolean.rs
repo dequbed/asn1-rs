@@ -7,6 +7,7 @@ use core::convert::TryFrom;
 ///
 /// DER objects must use value `0x0` (`false`) or `0xff` (`true`).
 #[derive(Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Boolean {
     pub value: u8,
 }

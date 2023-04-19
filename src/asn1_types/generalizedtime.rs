@@ -8,6 +8,7 @@ use core::fmt;
 use time::OffsetDateTime;
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct GeneralizedTime(pub ASN1DateTime);
 
 impl GeneralizedTime {

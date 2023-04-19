@@ -2,6 +2,7 @@ use crate::*;
 use core::convert::TryFrom;
 
 #[derive(Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct EmbeddedPdv<'a> {
     pub identification: PdvIdentification<'a>,
     pub data_value_descriptor: Option<ObjectDescriptor<'a>>,
@@ -9,6 +10,7 @@ pub struct EmbeddedPdv<'a> {
 }
 
 #[derive(Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum PdvIdentification<'a> {
     Syntaxes {
         s_abstract: Oid<'a>,

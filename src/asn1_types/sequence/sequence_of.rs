@@ -26,7 +26,8 @@ use core::iter::FromIterator;
 /// assert_eq!(sum, 9);
 ///
 /// ```
-#[derive(Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct SequenceOf<T> {
     pub(crate) items: Vec<T>,
 }

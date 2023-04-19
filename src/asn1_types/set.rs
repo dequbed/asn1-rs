@@ -74,6 +74,7 @@ pub use set_of::*;
 /// be used to provide a simpler API.
 ///
 #[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Set<'a> {
     /// Serialized DER representation of the set content
     pub content: Cow<'a, [u8]>,

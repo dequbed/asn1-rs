@@ -2,7 +2,8 @@ use crate::*;
 use core::convert::TryFrom;
 
 /// ASN.1 `NULL` type
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Null {}
 
 impl Null {

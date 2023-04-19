@@ -58,6 +58,8 @@ rusticata-macros = "4.0"
 thiserror = "1.0.25"
 time = { version="0.3", features=["macros", "parsing", "formatting"], optional=true }
 
+serde = { version = "1", features=["derive"], optional = true }
+
 [dev-dependencies]
 colored = "2.0"
 hex-literal = "0.3.1"

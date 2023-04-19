@@ -10,6 +10,7 @@ use nom::bytes::streaming::take;
 
 /// BER/DER object header (identifier and length)
 #[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Header<'a> {
     /// Object class: universal, application, context-specific, or private
     pub(crate) class: Class,

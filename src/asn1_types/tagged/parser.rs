@@ -2,6 +2,7 @@ use crate::*;
 use core::marker::PhantomData;
 
 #[derive(Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct TaggedParser<'a, TagKind, T, E = Error> {
     pub header: Header<'a>,
     pub inner: T,

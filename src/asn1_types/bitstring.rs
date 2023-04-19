@@ -6,6 +6,7 @@ use core::convert::TryFrom;
 
 /// ASN.1 `BITSTRING` type
 #[derive(Clone, Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct BitString<'a> {
     pub unused_bits: u8,
     pub data: Cow<'a, [u8]>,

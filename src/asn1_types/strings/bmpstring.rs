@@ -11,6 +11,7 @@ use alloc::vec::Vec;
 /// Note: parsing a `BmpString` allocates memory since the UTF-16 to UTF-8 conversion requires a memory allocation.
 /// (see `String::from_utf16` method).
 #[derive(Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct BmpString<'a> {
     pub(crate) data: Cow<'a, str>,
 }

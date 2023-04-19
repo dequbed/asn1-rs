@@ -12,6 +12,7 @@ use core::iter::FromIterator;
 ///
 /// Note: parsing a `UniversalString` allocates memory since the UCS-4 to UTF-8 conversion requires a memory allocation.
 #[derive(Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct UniversalString<'a> {
     pub(crate) data: Cow<'a, str>,
 }
