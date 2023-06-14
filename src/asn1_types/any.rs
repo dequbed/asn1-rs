@@ -336,6 +336,7 @@ impl<'a> FromDer<'a> for Any<'a> {
     }
 }
 
+
 impl CheckDerConstraints for Any<'_> {
     fn check_constraints(any: &Any) -> Result<()> {
         any.header.length().assert_definite()?;
@@ -350,6 +351,10 @@ impl DynTagged for Any<'_> {
     fn tag(&self) -> Tag {
         self.tag()
     }
+}
+
+impl DynTagged for &'_ Any<'_> {
+    fn tag(&self) -> Tag { Any::tag(self) }
 }
 
 // impl<'a> ToStatic for Any<'a> {
