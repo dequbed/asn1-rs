@@ -141,7 +141,13 @@ where
     }
 
     fn write_der_header(&self, writer: &mut dyn std::io::Write) -> SerializeResult<usize> {
-        self.items.write_der_header(writer)
+        // TODO: unify this with Vec again. Currently not possible because Vec<T> uses the Sequence tag instead of the Set tag
+        let mut len = 0;
+        for t in self.items.iter() {
+            len += t.to_der_len().map_err(|_| SerializeError::InvalidLength)?;
+        }
+        let header = Header::new(Class::Universal, true, Self::TAG, Length::Definite(len));
+        header.write_der_header(writer).map_err(Into::into)
     }
 
     fn write_der_content(&self, writer: &mut dyn std::io::Write) -> SerializeResult<usize> {

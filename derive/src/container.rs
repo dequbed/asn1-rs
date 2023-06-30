@@ -224,10 +224,19 @@ impl Container {
                 .fields
                 .iter()
                 .map(|field| {
-                    let ty = &field.type_;
-                    quote! {
-                        let (rem, any) = Any::from_der(rem)?;
-                        <#ty as CheckDerConstraints>::check_constraints(&any)?;
+                    if let Some((tag_kind@Asn1TagKind::Explicit, class, n)) = field.tag {
+                        let ty = &field.type_;
+                        let tag = Literal::u16_unsuffixed(n);
+                        quote! {
+                            let (rem, any) = Any::from_der(rem)?;
+                            asn1_rs::TaggedValue::<#ty, asn1_rs::Error, #tag_kind, {#class}, #tag>::check_constraints(&any)?;
+                        }
+                    } else {
+                        let ty = &field.type_;
+                        quote! {
+                            let (rem, any) = Any::from_der(rem)?;
+                            <#ty as CheckDerConstraints>::check_constraints(&any)?;
+                        }
                     }
                 })
                 .collect();
