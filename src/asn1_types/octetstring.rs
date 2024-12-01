@@ -3,6 +3,9 @@ use alloc::borrow::Cow;
 use core::convert::TryFrom;
 
 /// ASN.1 `OCTETSTRING` type
+///
+// TODO: We should rewrite this type to allow in-place decryption. Alas, that would mean rewriting
+//       half of this crate.
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct OctetString<'a> {

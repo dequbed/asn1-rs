@@ -156,7 +156,7 @@
 #![deny(/*missing_docs,*/
     unstable_features,
     unused_import_braces,
-    unused_qualifications,
+    // unused_qualifications,
     // unreachable_pub
 )]
 #![forbid(unsafe_code)]

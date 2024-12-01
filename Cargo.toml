@@ -44,6 +44,7 @@ bits = ["bitvec"]
 datetime = ["time"]
 serialize = ["cookie-factory"]
 std = []
+serde = ["dep:serde", "bytes/serde"]
 
 [dependencies]
 asn1-rs-derive = { version="0.4", path="./derive" }
@@ -57,6 +58,7 @@ num-traits = "0.2.14"
 rusticata-macros = "4.0"
 thiserror = "1.0.25"
 time = { version="0.3", features=["macros", "parsing", "formatting"], optional=true }
+bytes = { version = "1.8", features = ["std"] }
 
 serde = { version = "1", features=["derive"], optional = true }
 

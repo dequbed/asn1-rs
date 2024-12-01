@@ -7,7 +7,7 @@ use core::fmt;
 #[cfg(feature = "datetime")]
 use time::OffsetDateTime;
 
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct GeneralizedTime(pub ASN1DateTime);
 
